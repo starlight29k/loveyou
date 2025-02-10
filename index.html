@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(45deg, #ff9a9e, #fad0c4);
+            font-family: 'Arial', sans-serif;
+            perspective: 1000px;
+        }
+
+        .container {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(8px);
+            animation: fadeIn 1s ease-in-out;
+            transform-style: preserve-3d;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px) rotateX(-10deg);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) rotateX(0);
+            }
+        }
+
+        h1 {
+            color: #ff4b6e;
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+            animation: pulse 2s infinite;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .message {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+            animation: slideIn 1s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(-50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .btn {
+            padding: 1rem 3rem;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            transition: transform 0.5s;
+        }
+
+        .btn:active::after {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .btn-yes {
+            background: #ff4b6e;
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 75, 110, 0.3);
+        }
+
+        .btn-yes:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 75, 110, 0.4);
+        }
+
+        .btn-no {
+            background: #666;
+            color: white;
+            position: relative;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .games-section {
+            margin-top: 3rem;
+            text-align: center;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .quiz-game,
+        .heart-game {
+            margin-top: 2rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .option-btn {
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            background: #ff4b6e;
+            color: white;
+            margin: 1rem;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(255, 75, 110, 0.3);
+        }
+
+        .option-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 75, 110, 0.4);
+        }
+
+        .dodge-option {
+            position: absolute;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .heart-container {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 2rem;
+            perspective: 1000px;
+        }
+
+        .heart {
+            width: 80px;
+            height: 80px;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .heart-front,
+        .heart-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .heart-front {
+            background: #ff4b6e;
+            color: white;
+            font-size: 2rem;
+        }
+
+        .heart-back {
+            background: white;
+            transform: rotateY(180deg);
+            color: #ff4b6e;
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 0.5rem;
+        }
+
+        .heart.revealed {
+            transform: rotateY(180deg);
+        }
+
+        .hint-container {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 12px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .sparkle {
+            position: absolute;
+            pointer-events: none;
+            animation: sparkle 1s linear forwards;
+        }
+
+        @keyframes sparkle {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(var(--tx), var(--ty)) rotate(180deg);
+                opacity: 0;
+            }
+        }
+
+        .final-celebration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        #quiz-heading,
+        #quiz-question {
+            color: #FF1493;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container" id="entry">
+        <h1>I have something to ask you...</h1>
+        <p class="message">I guess you already know what it is.. ❤️</p>
+        <button class="btn btn-yes" onclick="nextStep()">Go ahead!</button>
+    </div>
+
+    <div class="container hidden" id="proposal">
+        <h1>Will you be mine, please? 💖</h1>
+        <div class="buttons">
+            <button class="btn btn-yes" onclick="accepted()">Yes!</button>
+            <button class="btn btn-no" onmouseover="dodge(this)">Nope</button>
+        </div>
+    </div>
+
+    <div class="container hidden" id="final-message">
+        <h1>Happy Birthday, My Love! ❤️</h1>
+        <p class="message">I LOVE YOU SO MUCH! You've made me the happiest person alive! 💕</p>
+    </div>
+
+    <div class="games-section hidden" id="games">
+        <div class="quiz-game">
+            <h2 id="quiz-heading">Let's play two games now, shall we?</h2>
+            <button class="btn btn-yes" id="start-quiz" onclick="startQuiz()">Sure, not like I have any choice</button>
+            <div>
+                <h2 id="quiz-question" class="hidden"></h2>
+                <div id="quiz-options" class="hidden">
+                    <button class="option-btn" id="option-you">Sir</button>
+                    <button class="option-btn" id="option-me">Miss</button>
+                </div>
+            </div>
+        </div>
+        <div class="heart-game hidden" id="heart-game">
+            <hr>
+            <h2>Catch the Heart 💖</h2>
+            <I class="message">Five hearts lie before you, each holding a special meaning. Reveal them in the right
+                order! I have put some hints for you too.</p>
+                <div class="heart-container" id="heart-container"></div>
+                <div class="hint-container">
+                    <div class="qncontainer">
+                        <h3 id="current-qn">Question 1: The most primal emotion I have for you</h3>
+                    </div>
+                    <p id="current-hint" class="message"></p>
+                </div>
+        </div>
+    </div>
+
+    <audio id="bgMusic" loop>
+        <source src="heart.mp3" type="audio/mp3">
+        Your browser does not support the audio element.
+    </audio>
+
+    <script>
+        const hearts = [
+            { value: 'Trust', correct: 3 },
+            { value: 'Care', correct: 1 },
+            { value: '(Not just) Kisses', correct: 5 },
+            { value: 'Love', correct: 2 },
+            { value: 'Respect', correct: 4 }
+        ];
+
+        const qns = [
+            "Question 1: The most primal emotion I have for you",
+            "Question 2: What I feel for you every single day",
+            "Question 3: The foundation of our relationship",
+            "Question 4: What I promise to give you always",
+            "Question 5: Something you deserve every single day"
+        ];
+
+        const hints = [
+            "Hint (1 / 3):My birthday is your guide",
+            "Hint (2 / 3):The number of years we're completing this year",
+            "Hint (3 / 3):Your place in my life"
+        ];
+
+        function createHearts() {
+            const container = document.getElementById('heart-container');
+            hearts.forEach((heart, index) => {
+                const heartDiv = document.createElement('div');
+                heartDiv.className = 'heart';
+                heartDiv.innerHTML = `
+                    <div class="heart-front">❤️</div>
+                    <div class="heart-back">${heart.value}</div>
+                `;
+                heartDiv.onclick = () => revealHeart(index);
+                container.appendChild(heartDiv);
+            });
+            updateHint(0);
+        }
+
+        function updateHint(index) {
+            const hintElement = document.getElementById('current-hint');
+            if (index < hints.length) {
+                hintElement.textContent = hints[index];
+            }
+        }
+
+        function nextStep() {
+            document.getElementById("entry").classList.add("hidden");
+            document.getElementById("proposal").classList.remove("hidden");
+        }
+
+        function createSparkle(x, y) {
+            const sparkle = document.createElement('div');
+            sparkle.className = 'sparkle';
+            sparkle.innerHTML = '✨';
+            sparkle.style.left = x + 'px';
+            sparkle.style.top = y + 'px';
+            sparkle.style.setProperty('--tx', (Math.random() * 100 - 50) + 'px');
+            sparkle.style.setProperty('--ty', (Math.random() * -100 - 50) + 'px');
+            document.body.appendChild(sparkle);
+            setTimeout(() => sparkle.remove(), 1000);
+        }
+
+        function dodge(btn) {
+            const btnWidth = btn.offsetWidth;
+            const btnHeight = btn.offsetHeight;
+
+            // Get viewport dimensions
+            const maxX = window.innerWidth - btnWidth - 10; // Extra margin for safety
+            const maxY = window.innerHeight - btnHeight - 10;
+
+            // Ensure the button stays within the visible area
+            const x = Math.max(10, Math.random() * maxX);
+            const y = Math.max(10, Math.random() * maxY);
+
+            btn.style.position = 'absolute'; // Ensure it moves freely
+            btn.style.left = `${x}px`;
+            btn.style.top = `${y}px`;
+
+            createSparkle(x + btnWidth / 2, y + btnHeight / 2); // Center sparkle effect
+        }
+
+
+        function accepted() {
+            document.getElementById("proposal").classList.add("hidden");
+            document.getElementById("final-message").classList.remove("hidden");
+            setTimeout(() => {
+                document.getElementById("games").classList.remove("hidden");
+            }, 3000);
+        }
+
+        let questions = [
+            "Who has the most beautiful smile in the world?",
+            "Who can't stop thinking about you day and night?",
+            "I fall in love more each day with...",
+            "Who's your No. 1 person?",
+            "Who's my cute little princess? (and more...😈😈😈)"
+        ];
+        let currentQuestion = 0;
+
+        function repositionButtons() {
+            const youBtn = document.getElementById("option-you");
+            const meBtn = document.getElementById("option-me");
+
+            dodge(youBtn);
+            dodge(meBtn);
+        }
+
+        function startQuiz() {
+            document.getElementById("quiz-heading").classList.add("hidden");
+            document.getElementById("start-quiz").classList.add("hidden");
+            document.getElementById("quiz-question").classList.remove("hidden");
+            document.getElementById("quiz-options").classList.remove("hidden");
+            document.getElementById("quiz-question").innerText = questions[currentQuestion];
+
+            repositionButtons();
+            updateButtonBehavior();
+        }
+
+        function updateButtonBehavior() {
+            const youBtn = document.getElementById("option-you");
+            const meBtn = document.getElementById("option-me");
+
+            // Reset button properties
+            youBtn.className = "option-btn";
+            meBtn.className = "option-btn";
+            youBtn.onmouseover = null;
+            meBtn.onmouseover = null;
+            youBtn.onclick = null;
+            meBtn.onclick = null;
+
+            if (currentQuestion % 2 === 0) {
+                meBtn.className = "option-btn clickable";
+                meBtn.onclick = nextQuestion;
+                youBtn.onmouseover = function () { dodge(this); };
+            } else {
+                youBtn.className = "option-btn clickable";
+                youBtn.onclick = nextQuestion;
+                meBtn.onmouseover = function () { dodge(this); };
+            }
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion < questions.length) {
+                document.getElementById("quiz-question").innerText = questions[currentQuestion];
+                repositionButtons();
+                updateButtonBehavior();
+            } else {
+                document.getElementById("quiz-question").innerText = "Yay! You did it! ❤️";
+                document.getElementById("quiz-options").classList.add("hidden");
+                setTimeout(() => {
+                    document.getElementById("heart-game").classList.remove("hidden");
+                    createHearts();
+                }, 2000);
+            }
+        }
+
+        let heartsRevealed = 0;
+        let currentHintIndex = 0;
+
+        function revealHeart(index) {
+            const heart = document.querySelectorAll('.heart')[index];
+            if (!heart.classList.contains('revealed')) {
+                if (hearts[index].correct === heartsRevealed + 1) {
+                    heart.classList.add('revealed');
+                    heartsRevealed++;
+
+                    updateQuestion(heartsRevealed);
+
+                    if (heartsRevealed < 3) {
+                        updateHint(heartsRevealed);
+                    } else {
+                        document.getElementById('current-hint').textContent = "";
+                    }
+
+                    if (heartsRevealed === hearts.length) {
+                        celebrate();
+                    }
+
+                    const rect = heart.getBoundingClientRect();
+                    for (let i = 0; i < 5; i++) {
+                        createSparkle(rect.left + rect.width / 2, rect.top + rect.height / 2);
+                    }
+                } else {
+                    alert("Oops! Wrong order. Try again! 😘");
+                    resetHearts();
+                }
+            }
+        }
+
+        function updateQuestion(index) {
+            const qnElement = document.getElementById('current-qn');
+            if (index < qns.length) {
+                qnElement.innerHTML = `${qns[index]}`;
+            }
+            else {
+                const sortedHearts = hearts.slice().sort((a, b) => a.correct - b.correct);
+                qnElement.innerHTML = qns.map((q, i) => `${q} - <b>${sortedHearts[i].value}</b>`).join("<br>");
+            }
+        }
+
+        function resetHearts() {
+            document.querySelectorAll('.heart').forEach(heart => {
+                heart.classList.remove('revealed');
+            });
+            heartsRevealed = 0;
+            currentHintIndex = 0;
+            updateHint(0);
+            updateQuestion(heartsRevealed);
+        }
+
+        function celebrate() {
+            const celebration = document.createElement('div');
+            celebration.className = 'final-celebration';
+            document.body.appendChild(celebration);
+
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    createSparkle(
+                        Math.random() * window.innerWidth,
+                        Math.random() * window.innerHeight
+                    );
+                }, i * 100);
+            }
+
+            setTimeout(() => {
+                alert("Congratulations! You've captured all the hearts! ❤️\nJust like you captured mine! 😘\nOnce again sweetheart, Happy Birthday❤️\nI wish for you the best, best of everything the world has to offer!😘😘");
+                celebration.remove();
+            }, 3000);
+        }
+
+        let isMusicPlaying = false;
+        const bgMusic = document.getElementById('bgMusic');
+        const toggleButton = document.getElementById('toggleMusic');
+
+        function toggleMusic() {
+            if (isMusicPlaying) {
+                bgMusic.pause();
+                isMusicPlaying = false;
+                toggleButton.textContent = '🎵 Toggle Music (Press \'B\')';
+            } else {
+                bgMusic.play().catch(error => {
+                    console.log("Autoplay prevented:", error);
+                });
+                isMusicPlaying = true;
+                toggleButton.textContent = '🔇 Toggle Music (Press \'B\')';
+            }
+        }
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key.toLowerCase() === 'b') {
+                toggleMusic();
+            }
+        });
+
+        function setupAutoplay() {
+            document.querySelector('.btn-yes').addEventListener('click', () => {
+                if (!isMusicPlaying) {
+                    toggleMusic();
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', setupAutoplay);
+    </script>
+</body>
+
+</html>
